@@ -1,6 +1,6 @@
 # SDA-Pro Integration Platform
 
-SDA-Pro is an integrated Security Detection and Automated Response demo. The workspace now keeps each student-owned subsystem intact under `modules/`, with shared operational scripts at the root and in `scripts/`.
+SDA - Pro is an integrated Security Detection and Automated Response demo. The workspace now keeps each student-owned subsystem intact under `modules/`, with shared operational scripts at the root and in `scripts/`.
 
 ## Repository Layout
 
