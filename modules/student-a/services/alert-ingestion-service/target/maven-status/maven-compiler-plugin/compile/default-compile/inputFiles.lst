@@ -1,0 +1,17 @@
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\domain\alert\SingleAlert.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\config\IngestionConfigManager.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\services\normalizer\AlertNormalizerFactory.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\services\normalizer\AlertNormalizer.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\services\normalizer\SplunkNormalizer.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\domain\alert\AlertCampaign.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\controllers\AlertIngestionController.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\services\normalizer\FirewallNormalizer.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\domain\alert\IncidentCluster.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\domain\alert\AlertComponent.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\repositories\AlertRepository.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\AlertIngestionApplication.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\services\ingestion\AlertIngestionOrchestrator.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\repositories\IncidentClusterRepository.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\repositories\AlertCampaignRepository.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\domain\source\AlertSource.java
+S:\SDA\Sem-Project\STUDENT-A\services\alert-ingestion-service\src\main\java\com\sdapro\alertingestion\services\normalizer\CrowdStrikeNormalizer.java

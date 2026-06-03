@@ -1,0 +1,45 @@
+@startuml
+title SDA-Pro Component Diagram
+
+skinparam componentStyle rectangle
+
+actor "SOC Analyst" as Analyst
+
+component "SOC Dashboard\nReact/Vite" as Dashboard
+component "SOC Platform Backend\nStudent C / Spring Boot" as SOC
+component "Alert Ingestion\nStudent A / Spring Boot" as Ingestion
+component "Enrichment & Correlation\nStudent A / Spring Boot" as Enrichment
+component "Incident Management\nStudent A / Spring Boot" as Incident
+component "Threat Intel Service\nStudent B / NestJS" as ThreatIntel
+component "Response Orchestration\nStudent B / NestJS" as Response
+component "Notification Service\nStudent B / NestJS" as Notification
+component "Middleware Pipeline\nStudent B / NestJS" as Middleware
+queue "RabbitMQ" as Rabbit
+database "PostgreSQL" as Postgres
+database "SQLite Service DBs" as SQLite
+database "Redis" as Redis
+
+Analyst --> Dashboard
+Dashboard --> SOC : REST + WebSocket
+Dashboard --> Ingestion : REST proxy
+Dashboard --> Incident : REST proxy
+Ingestion --> Enrichment : REST/demo payloads
+Enrichment --> Incident : enriched alert context
+SOC --> Rabbit : publish events
+ThreatIntel --> Rabbit : threat intel events
+Response --> Rabbit : response action events
+Notification --> Rabbit : notification events
+Middleware --> Rabbit : processed alerts
+ThreatIntel --> Postgres
+Response --> Postgres
+Notification --> Postgres
+SOC --> Postgres
+ThreatIntel --> Redis
+SOC --> Redis
+Ingestion --> SQLite
+Enrichment --> SQLite
+Incident --> SQLite
+Response --> ThreatIntel : reputation checks
+Response --> Notification : dispatch
+
+@enduml

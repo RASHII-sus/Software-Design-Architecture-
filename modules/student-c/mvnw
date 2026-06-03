@@ -1,0 +1,3 @@
+#!/bin/sh
+# Maven Wrapper script for SDA-Pro Student C
+exec "$(dirname "$0")/.mvn/wrapper/mvnw" "$@"

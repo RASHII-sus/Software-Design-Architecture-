@@ -1,0 +1,28 @@
+@startuml
+title SDA-Pro End-to-End Alert Flow
+
+actor Analyst
+participant "SOC Dashboard" as UI
+participant "Alert Ingestion" as Ingest
+participant "Enrichment" as Enrich
+participant "Incident Management" as Incident
+participant "Response Orchestration" as Response
+participant "Threat Intel" as TI
+participant "Notification" as Notify
+participant "SOC Backend/EventBus" as SOC
+
+Analyst -> UI : Trigger sample alert
+UI -> Ingest : POST /api/v1/ingest/splunk
+Ingest -> Ingest : Factory Method normalizer
+Ingest -> Enrich : POST /api/v1/enrich
+Enrich -> Enrich : Chain of Responsibility
+Enrich -> Incident : POST /api/v1/incidents
+Incident -> Incident : State transition rules
+Incident -> SOC : IncidentStateChanged event
+SOC -> UI : WebSocket /topic/dashboard
+Response -> TI : POST /api/v1/threat-intel/reputation
+Response -> Response : Strategy + Factory + Decorators
+Response -> Notify : POST /api/v1/notifications/dispatch
+Notify -> SOC : Notification event
+
+@enduml

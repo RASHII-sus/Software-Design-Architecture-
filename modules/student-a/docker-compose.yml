@@ -1,0 +1,93 @@
+version: '3.8'
+
+# SDA-Pro — Docker Compose for Student A Services
+# Starts all 3 SOA services: Alert Ingestion, Enrichment & Correlation, Incident Management
+
+services:
+
+  # ============================================
+  # Alert Ingestion Service (Student A)
+  # Patterns: Singleton, Factory Method, Composite
+  # ============================================
+  alert-ingestion-service:
+    build:
+      context: .
+      dockerfile: services/alert-ingestion-service/Dockerfile
+    container_name: sda-alert-ingestion
+    ports:
+      - "8081:8081"
+    volumes:
+      - alert-data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=8081
+    networks:
+      - sda-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================
+  # Enrichment & Correlation Service (Student A)
+  # Patterns: Chain of Responsibility, Abstract Factory, Strategy, Composite
+  # ============================================
+  enrichment-correlation-service:
+    build:
+      context: .
+      dockerfile: services/enrichment-correlation-service/Dockerfile
+    container_name: sda-enrichment
+    ports:
+      - "8082:8082"
+    volumes:
+      - enrichment-data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=8082
+      - ALERT_INGESTION_URL=http://alert-ingestion-service:8081
+    depends_on:
+      - alert-ingestion-service
+    networks:
+      - sda-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================
+  # Incident Management Service (Student A)
+  # Patterns: State
+  # ============================================
+  incident-management-service:
+    build:
+      context: .
+      dockerfile: services/incident-management-service/Dockerfile
+    container_name: sda-incident-mgmt
+    ports:
+      - "8083:8083"
+    volumes:
+      - incident-data:/app/data
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=8083
+      - ENRICHMENT_SERVICE_URL=http://enrichment-correlation-service:8082
+    depends_on:
+      - enrichment-correlation-service
+    networks:
+      - sda-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  alert-data:
+  enrichment-data:
+  incident-data:
+
+networks:
+  sda-network:
+    driver: bridge

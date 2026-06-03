@@ -1,0 +1,4 @@
+com\sdapro\alertingestion\AlertIngestionPatternTests$CompositeTests.class
+com\sdapro\alertingestion\AlertIngestionPatternTests$SingletonTests.class
+com\sdapro\alertingestion\AlertIngestionPatternTests$FactoryMethodTests.class
+com\sdapro\alertingestion\AlertIngestionPatternTests.class

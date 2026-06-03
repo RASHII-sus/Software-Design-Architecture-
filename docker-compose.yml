@@ -1,0 +1,251 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: sda-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sdapro
+      POSTGRES_PASSWORD: sdapro_secret
+      POSTGRES_DB: sdapro
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./modules/student-b/scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U sdapro -d sdapro']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sda-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: sda-redis
+    restart: unless-stopped
+    command: redis-server --requirepass redis_secret --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', 'redis_secret', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sda-network
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: sda-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: sdapro
+      RABBITMQ_DEFAULT_PASS: rabbitmq_secret
+      RABBITMQ_DEFAULT_VHOST: sdapro
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./modules/student-b/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./modules/student-b/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', 'check_port_connectivity']
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - sda-network
+
+  alert-ingestion-service:
+    build:
+      context: ./modules/student-a
+      dockerfile: services/alert-ingestion-service/Dockerfile
+    container_name: sda-alert-ingestion
+    ports:
+      - '8081:8081'
+    volumes:
+      - alert_data:/app/data
+    networks:
+      - sda-network
+
+  enrichment-correlation-service:
+    build:
+      context: ./modules/student-a
+      dockerfile: services/enrichment-correlation-service/Dockerfile
+    container_name: sda-enrichment
+    ports:
+      - '8082:8082'
+    volumes:
+      - enrichment_data:/app/data
+    depends_on:
+      - alert-ingestion-service
+    networks:
+      - sda-network
+
+  incident-management-service:
+    build:
+      context: ./modules/student-a
+      dockerfile: services/incident-management-service/Dockerfile
+    container_name: sda-incident-mgmt
+    ports:
+      - '8083:8083'
+    volumes:
+      - incident_data:/app/data
+    depends_on:
+      - enrichment-correlation-service
+    networks:
+      - sda-network
+
+  threat-intel-service:
+    build:
+      context: ./modules/student-b
+      dockerfile: services/threat-intel-service/Dockerfile
+      target: production
+    container_name: sda-threat-intel
+    env_file:
+      - ./modules/student-b/services/threat-intel-service/.env
+    environment:
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+      RABBITMQ_URL: amqp://sdapro:rabbitmq_secret@rabbitmq:5672/sdapro
+    ports:
+      - '3002:3002'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - sda-network
+
+  response-orchestration-service:
+    build:
+      context: ./modules/student-b
+      dockerfile: services/response-orchestration-service/Dockerfile
+      target: production
+    container_name: sda-response-orchestration
+    env_file:
+      - ./modules/student-b/services/response-orchestration-service/.env
+    environment:
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+      RABBITMQ_URL: amqp://sdapro:rabbitmq_secret@rabbitmq:5672/sdapro
+      THREAT_INTEL_SERVICE_URL: http://threat-intel-service:3002
+    ports:
+      - '3003:3003'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      threat-intel-service:
+        condition: service_started
+    networks:
+      - sda-network
+
+  notification-service:
+    build:
+      context: ./modules/student-b
+      dockerfile: services/notification-service/Dockerfile
+      target: production
+    container_name: sda-notification
+    env_file:
+      - ./modules/student-b/services/notification-service/.env
+    environment:
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      RABBITMQ_URL: amqp://sdapro:rabbitmq_secret@rabbitmq:5672/sdapro
+    ports:
+      - '3004:3004'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - sda-network
+
+  middleware:
+    build:
+      context: ./modules/student-b
+      dockerfile: middleware/Dockerfile
+      target: production
+    container_name: sda-middleware
+    env_file:
+      - ./modules/student-b/middleware/.env
+    environment:
+      NODE_ENV: production
+      RABBITMQ_URL: amqp://sdapro:rabbitmq_secret@rabbitmq:5672/sdapro
+      THREAT_INTEL_SERVICE_URL: http://threat-intel-service:3002
+    ports:
+      - '3005:3005'
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      threat-intel-service:
+        condition: service_started
+    networks:
+      - sda-network
+
+  soc-platform-backend:
+    build:
+      context: ./modules/student-c
+      dockerfile: Dockerfile
+    container_name: sda-soc-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: integrated
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sdapro
+      SPRING_DATASOURCE_USERNAME: sdapro
+      SPRING_DATASOURCE_PASSWORD: sdapro_secret
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PASSWORD: redis_secret
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: sdapro
+      SPRING_RABBITMQ_PASSWORD: rabbitmq_secret
+      SPRING_RABBITMQ_VIRTUAL_HOST: sdapro
+    ports:
+      - '8084:8084'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - sda-network
+
+  soc-dashboard-frontend:
+    build:
+      context: ./modules/student-c/frontend
+      dockerfile: Dockerfile
+    container_name: sda-soc-frontend
+    ports:
+      - '3000:3000'
+    depends_on:
+      - soc-platform-backend
+      - alert-ingestion-service
+      - incident-management-service
+    networks:
+      - sda-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  alert_data:
+  enrichment_data:
+  incident_data:
+
+networks:
+  sda-network:
+    driver: bridge
+    name: sda-pro-network

@@ -1,0 +1,192 @@
+version: '3.9'
+
+services:
+  # ─── Infrastructure ───────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: sda-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sdapro}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sdapro_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-sdapro}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U sdapro']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sda-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: sda-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis_secret} --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD:-redis_secret}', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sda-network
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: sda-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-sdapro}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-rabbitmq_secret}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-sdapro}
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', 'check_port_connectivity']
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - sda-network
+
+  # ─── Student B Services ───────────────────────────────────────────────────────
+  threat-intel-service:
+    build:
+      context: .
+      dockerfile: services/threat-intel-service/Dockerfile
+      target: production
+    container_name: sda-threat-intel
+    restart: unless-stopped
+    env_file:
+      - ./services/threat-intel-service/.env
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-sdapro}:${RABBITMQ_PASSWORD:-rabbitmq_secret}@rabbitmq:5672/${RABBITMQ_VHOST:-sdapro}
+    ports:
+      - '3002:3002'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - sda-network
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3002/api/v1/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  response-orchestration-service:
+    build:
+      context: .
+      dockerfile: services/response-orchestration-service/Dockerfile
+      target: production
+    container_name: sda-response-orchestration
+    restart: unless-stopped
+    env_file:
+      - ./services/response-orchestration-service/.env
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-sdapro}:${RABBITMQ_PASSWORD:-rabbitmq_secret}@rabbitmq:5672/${RABBITMQ_VHOST:-sdapro}
+      THREAT_INTEL_SERVICE_URL: http://threat-intel-service:3002
+    ports:
+      - '3003:3003'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      threat-intel-service:
+        condition: service_healthy
+    networks:
+      - sda-network
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3003/api/v1/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification-service/Dockerfile
+      target: production
+    container_name: sda-notification
+    restart: unless-stopped
+    env_file:
+      - ./services/notification-service/.env
+    environment:
+      NODE_ENV: production
+      PORT: 3004
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-sdapro}:${RABBITMQ_PASSWORD:-rabbitmq_secret}@rabbitmq:5672/${RABBITMQ_VHOST:-sdapro}
+    ports:
+      - '3004:3004'
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - sda-network
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3004/api/v1/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  middleware:
+    build:
+      context: .
+      dockerfile: middleware/Dockerfile
+      target: production
+    container_name: sda-middleware
+    restart: unless-stopped
+    env_file:
+      - ./middleware/.env
+    environment:
+      NODE_ENV: production
+      PORT: 3005
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-sdapro}:${RABBITMQ_PASSWORD:-rabbitmq_secret}@rabbitmq:5672/${RABBITMQ_VHOST:-sdapro}
+      THREAT_INTEL_SERVICE_URL: http://threat-intel-service:3002
+    ports:
+      - '3005:3005'
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      threat-intel-service:
+        condition: service_healthy
+    networks:
+      - sda-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  sda-network:
+    driver: bridge
+    name: sda-pro-network

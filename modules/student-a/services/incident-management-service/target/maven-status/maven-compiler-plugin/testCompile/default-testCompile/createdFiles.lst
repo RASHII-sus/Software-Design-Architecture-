@@ -1,0 +1,5 @@
+com\sdapro\incident\StatePatternTests$EscalationTests.class
+com\sdapro\incident\StatePatternTests$LegalTransitions.class
+com\sdapro\incident\StatePatternTests$AllowedActionsTests.class
+com\sdapro\incident\StatePatternTests.class
+com\sdapro\incident\StatePatternTests$IllegalTransitions.class

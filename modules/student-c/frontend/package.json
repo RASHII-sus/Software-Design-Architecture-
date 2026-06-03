@@ -1,0 +1,41 @@
+{
+  "name": "sda-pro-studentc-frontend",
+  "version": "1.0.0",
+  "description": "SDA-Pro SOC Dashboard - Student C Frontend",
+  "private": true,
+  "dependencies": {
+    "@stomp/stompjs": "^7.0.0",
+    "axios": "^1.5.0",
+    "clsx": "^2.1.1",
+    "prop-types": "^15.8.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-is": "^19.2.7",
+    "react-scripts": "5.0.1",
+    "react-smooth": "^2.0.3",
+    "recharts": "^2.8.0",
+    "recharts-scale": "^0.4.5",
+    "scheduler": "^0.27.0",
+    "sockjs-client": "^1.6.1",
+    "tiny-invariant": "^1.3.3",
+    "victory-vendor": "^37.3.6"
+  },
+  "scripts": {
+    "start": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead"
+    ],
+    "development": [
+      "last 1 chrome version"
+    ]
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.2",
+    "vite": "^8.0.16"
+  }
+}

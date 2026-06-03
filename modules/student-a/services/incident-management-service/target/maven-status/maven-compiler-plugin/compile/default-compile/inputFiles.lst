@@ -1,0 +1,13 @@
+S:\SDA\Sem-Project\STUDENT-A\services\incident-management-service\src\main\java\com\sdapro\incident\domain\incident\Incident.java
+S:\SDA\Sem-Project\STUDENT-A\services\incident-management-service\src\main\java\com\sdapro\incident\controllers\IncidentController.java
+S:\SDA\Sem-Project\STUDENT-A\services\incident-management-service\src\main\java\com\sdapro\incident\domain\state\ContainmentState.java
+S:\SDA\Sem-Project\STUDENT-A\services\incident-management-service\src\main\java\com\sdapro\incident\domain\state\ClosedState.java
+S:\SDA\Sem-Project\STUDENT-A\services\incident-management-service\src\main\java\com\sdapro\incident\domain\state\NewState.java
+S:\SDA\Sem-Project\STUDENT-A\services\incident-management-service\src\main\java\com\sdapro\incident\repositories\IncidentRepository.java
+S:\SDA\Sem-Project\STUDENT-A\services\incident-management-service\src\main\java\com\sdapro\incident\services\IncidentLifecycleService.java
+S:\SDA\Sem-Project\STUDENT-A\services\incident-management-service\src\main\java\com\sdapro\incident\domain\state\EradicationState.java
+S:\SDA\Sem-Project\STUDENT-A\services\incident-management-service\src\main\java\com\sdapro\incident\IncidentManagementApplication.java
+S:\SDA\Sem-Project\STUDENT-A\services\incident-management-service\src\main\java\com\sdapro\incident\domain\state\UnderTriageState.java
+S:\SDA\Sem-Project\STUDENT-A\services\incident-management-service\src\main\java\com\sdapro\incident\domain\state\IncidentState.java
+S:\SDA\Sem-Project\STUDENT-A\services\incident-management-service\src\main\java\com\sdapro\incident\domain\state\RecoveryState.java
+S:\SDA\Sem-Project\STUDENT-A\services\incident-management-service\src\main\java\com\sdapro\incident\domain\state\PostIncidentReviewState.java

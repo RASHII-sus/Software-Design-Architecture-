@@ -1,0 +1,202 @@
+{
+  "rabbit_version": "3.12.0",
+  "users": [],
+  "vhosts": [
+    { "name": "sdapro" }
+  ],
+  "permissions": [],
+  "exchanges": [
+    {
+      "name": "sda.alerts",
+      "vhost": "sdapro",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "sda.incidents",
+      "vhost": "sdapro",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "sda.responses",
+      "vhost": "sdapro",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "sda.notifications",
+      "vhost": "sdapro",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "sda.threat-intel",
+      "vhost": "sdapro",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "sda.dead-letter",
+      "vhost": "sdapro",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "alert.ingested",
+      "vhost": "sdapro",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "sda.dead-letter"
+      }
+    },
+    {
+      "name": "alert.enriched",
+      "vhost": "sdapro",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "sda.dead-letter"
+      }
+    },
+    {
+      "name": "incident.created",
+      "vhost": "sdapro",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "sda.dead-letter"
+      }
+    },
+    {
+      "name": "incident.state.changed",
+      "vhost": "sdapro",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "sda.dead-letter"
+      }
+    },
+    {
+      "name": "response.action.executed",
+      "vhost": "sdapro",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "sda.dead-letter"
+      }
+    },
+    {
+      "name": "threat-intel.updated",
+      "vhost": "sdapro",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "sda.dead-letter"
+      }
+    },
+    {
+      "name": "notification.dispatch",
+      "vhost": "sdapro",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "sda.dead-letter"
+      }
+    },
+    {
+      "name": "dead.letter",
+      "vhost": "sdapro",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "sda.alerts",
+      "vhost": "sdapro",
+      "destination": "alert.ingested",
+      "destination_type": "queue",
+      "routing_key": "alert.ingested",
+      "arguments": {}
+    },
+    {
+      "source": "sda.alerts",
+      "vhost": "sdapro",
+      "destination": "alert.enriched",
+      "destination_type": "queue",
+      "routing_key": "alert.enriched",
+      "arguments": {}
+    },
+    {
+      "source": "sda.incidents",
+      "vhost": "sdapro",
+      "destination": "incident.created",
+      "destination_type": "queue",
+      "routing_key": "incident.created",
+      "arguments": {}
+    },
+    {
+      "source": "sda.incidents",
+      "vhost": "sdapro",
+      "destination": "incident.state.changed",
+      "destination_type": "queue",
+      "routing_key": "incident.state.changed",
+      "arguments": {}
+    },
+    {
+      "source": "sda.responses",
+      "vhost": "sdapro",
+      "destination": "response.action.executed",
+      "destination_type": "queue",
+      "routing_key": "response.action.executed",
+      "arguments": {}
+    },
+    {
+      "source": "sda.threat-intel",
+      "vhost": "sdapro",
+      "destination": "threat-intel.updated",
+      "destination_type": "queue",
+      "routing_key": "threat-intel.updated",
+      "arguments": {}
+    },
+    {
+      "source": "sda.notifications",
+      "vhost": "sdapro",
+      "destination": "notification.dispatch",
+      "destination_type": "queue",
+      "routing_key": "notification.dispatch",
+      "arguments": {}
+    },
+    {
+      "source": "sda.dead-letter",
+      "vhost": "sdapro",
+      "destination": "dead.letter",
+      "destination_type": "queue",
+      "routing_key": "#",
+      "arguments": {}
+    }
+  ]
+}

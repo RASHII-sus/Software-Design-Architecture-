@@ -1,0 +1,18 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: incident-management-service
+  datasource:
+    url: jdbc:sqlite:./data/incident-management.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+logging:
+  level:
+    com.sdapro: DEBUG
